@@ -3,52 +3,51 @@ name: Django-app
 on: [push]
 
 jobs:
-  # tests:
-  #   runs-on: ubuntu-latest
+  tests:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - name: Set up Python
-  #     uses: actions/setup-python@v2
-  #     with:
-  #       python-version: 3.7
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
 
-  #   - name: Install dependencies
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
-  #       pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
+        pip install -r requirements.txt
 
-  #   - name: Test with flake8 and django tests
-  #     run: |
-  #       python -m flake8
-  #       cd infra_project/
-  #       python manage.py test
+    - name: Test with flake8 and django tests
+      run: |
+        python -m flake8
+        cd infra_project/
+        python manage.py test
 
-  # build_and_push_to_docker_hub:
-  #   name: Push Docker image to Docker Hub
-  #   runs-on: ubuntu-latest
-  #   needs: tests
-  #   steps:
-  #     - name: Check out the repo
-  #       uses: actions/checkout@v2
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
-  #     - name: Login to Docker
-  #       uses: docker/login-action@v1
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Push to Docker Hub
-  #       uses: docker/build-push-action@v2
-  #       with:
-  #         push: true
-  #         tags: sihuannewrise/infra:latest
+  build_and_push_to_docker_hub:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to Docker
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: sihuannewrise/infra:latest
 
   deploy:
     runs-on: ubuntu-latest
-    # needs: build_and_push_to_docker_hub
-
+    needs: build_and_push_to_docker_hub
     steps:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
@@ -57,8 +56,6 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            whoami
-            ls -la
-            # sudo docker pull sihuannewrise/infra
-            # sudo docker stop $(sudo docker ps -a -q)
-            # sudo docker run --rm -d -p 5000:5000 sihuannewrise/infra
+            sudo docker pull sihuannewrise/infra
+            sudo docker stop $(sudo docker ps -a -q)
+            sudo docker run --rm -d -p 5000:5000 sihuannewrise/infra
